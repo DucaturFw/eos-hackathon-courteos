@@ -11,24 +11,28 @@ class ListCases extends Component {
     this.state = {
       data: [
         {
-          initiator: 'a',
-          partner: 'b',
-          state: 'disputed',
+          id: 1,
+          initiator: 'Microsoft',
+          partner: 'Alphabet',
+          state: 'Disputed',
         },
         {
-          initiator: 'a',
-          partner: 'b',
-          state: 'pending',
+          id: 2,
+          initiator: 'Yandex',
+          partner: 'Alphabet',
+          state: 'Pending',
         },
         {
-          initiator: 'a',
-          partner: 'b',
-          state: 'signed',
+          id: 3,
+          initiator: 'Lenovo',
+          partner: 'NVidia',
+          state: 'Signed',
         },
         {
-          initiator: 'a',
-          partner: 'b',
-          state: 'finished',
+          id: 4,
+          initiator: 'Lenovo',
+          partner: 'HP',
+          state: 'Finished',
         },
       ],
     };

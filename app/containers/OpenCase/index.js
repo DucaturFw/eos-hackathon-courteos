@@ -81,7 +81,9 @@ class ResolveModal extends Component {
             />
           </Form>
           <Modal.Actions>
-            <Button negative>No</Button>
+            <Button negative onClick={this.close}>
+              No
+            </Button>
             <Button
               positive
               icon="checkmark"
@@ -143,7 +145,9 @@ class OpenDisputeModal extends Component {
             />
           </Form>
           <Modal.Actions>
-            <Button negative>No</Button>
+            <Button negative onClick={this.close}>
+              No
+            </Button>
             <Button
               positive
               icon="checkmark"
@@ -158,8 +162,12 @@ class OpenDisputeModal extends Component {
 }
 
 const options = [
-  { key: '1', text: 'The Mate', value: 'mate' },
-  { key: '2', text: 'The Foe', value: 'foe' },
+  { key: '1', text: 'Microsoft', value: 'microsoft' },
+  { key: '2', text: 'Apple', value: 'apple' },
+  { key: '3', text: 'Alphabet', value: 'alphabet' },
+  { key: '4', text: 'Yandex', value: 'yandex' },
+  { key: '5', text: 'Lenovo', value: 'lenovo' },
+  { key: '6', text: 'HP', value: 'hp' },
 ];
 
 const minExp = [
@@ -169,20 +177,11 @@ const minExp = [
 ];
 
 const judges = [
-  { key: '1', text: 'Some Cool', value: '1', level: 1 },
-  { key: '2', text: 'Man Yeah', value: '2', level: 1 },
-  { key: '3', text: 'Expert Level', value: '3', level: 2 },
+  { key: '1', text: 'April Jane', value: '1', level: 1 },
+  { key: '2', text: 'Ioan Bell', value: '2', level: 1 },
+  { key: '3', text: 'John Ford', value: '3', level: 2 },
+  { key: '4', text: 'Henry Dijkstra', value: '4', level: 3 },
 ];
-
-function numberRange(start, end) {
-  return new Array(end - start).fill().map((d, i) => i + start);
-}
-
-const counts = numberRange(1, 6).map(v => ({
-  key: `${v}`,
-  text: `${v}`,
-  value: v,
-}));
 
 const getSteps = (steps, currStep, cb) => (
   <Step.Group ordered>
@@ -260,13 +259,13 @@ class OpenCase extends Component {
   }
 
   onDrop(acceptedFiles) {
+    this.setState({ files: acceptedFiles.map(file => file.name) });
     acceptedFiles.forEach(file => {
       const reader = new FileReader();
       reader.onload = () => {
-        const fileAsBinaryString = reader.result;
+        // const fileAsBinaryString = reader.result;
         // do whatever you want with the file content
-        console.log(fileAsBinaryString);
-        this.setState({ files: acceptedFiles });
+        // console.log(fileAsBinaryString);
       };
       reader.onabort = () => console.log('file reading was aborted');
       reader.onerror = () => console.log('file reading has failed');
@@ -321,11 +320,20 @@ class OpenCase extends Component {
       <div>
         <h1>
           {(this.props.show === 1 && 'Show') ||
-            (this.props.accept === 1 && 'Accept') ||
             (this.props.resolve === 1 && 'Resolve') ||
+            (this.props.accept === 1 && 'Accept') ||
             'Open'}{' '}
           Case
         </h1>
+        {this.state.reason && (
+          <Message>
+            <Message.Header>
+              Dispute is opened by &nbsp;
+              <b>{this.state.opener}</b>
+            </Message.Header>
+            <p>{this.state.reason}</p>
+          </Message>
+        )}
         <Segment>
           {getSteps(
             ['Agreement', 'Contract', 'Judges'].map(e => ({ title: e })),
@@ -346,7 +354,13 @@ class OpenCase extends Component {
                   name="parties"
                   onChange={this.handleInputChange}
                   value={this.state.parties}
-                  options={options}
+                  options={
+                    this.state.parties.length >= 2
+                      ? options.filter(
+                        p => this.state.parties.indexOf(p.value) !== -1,
+                      )
+                      : options
+                  }
                 />
                 <br />
                 The contract is:&nbsp;&nbsp;&nbsp;
@@ -497,16 +511,21 @@ class OpenCase extends Component {
                 (this.state.type === 'attached' && (
                   <div>
                     <br />
-                    <Header
-                      as="h2"
-                      content="Drop zone for contract file"
-                      textAlign="center"
-                    />
                     <br />
                     {(this.props.accept && (
-                      <div>File: {this.state.files}</div>
+                      <Header
+                        as="h2"
+                        content="Files in contract:"
+                        textAlign="center"
+                      />
                     )) || (
                       <div>
+                        <Header
+                          as="h2"
+                          content="Drop zone for contract file"
+                          textAlign="center"
+                        />
+                        <br />
                         <Grid centered columns={1}>
                           <Dropzone onDrop={this.onDrop}>
                             {props => (
@@ -520,6 +539,9 @@ class OpenCase extends Component {
                         </Grid>
                       </div>
                     )}
+                    <Segment text={1}>
+                      Files: {(this.state.files || []).join(', ')}
+                    </Segment>
                     <br />
                     <h5>
                       Upload your contract file. It would be acceptable only for
@@ -530,7 +552,7 @@ class OpenCase extends Component {
                 )))}
           </Form>
         </Segment>
-        {JSON.stringify(this.state)}
+        {/* {JSON.stringify(this.state)} */}
       </div>
     );
   }
