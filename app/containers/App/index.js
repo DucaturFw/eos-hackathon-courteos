@@ -33,9 +33,6 @@ const FixedMenuLayout = () => (
         <Menu.Item as={Link} to="/list">
           List
         </Menu.Item>
-        {/* <Menu.Item as={Link} to="/register"> */}
-        {/* Register */}
-        {/* </Menu.Item> */}
         <Menu.Item as={Link} to="/open">
           New
         </Menu.Item>
@@ -101,7 +98,7 @@ const FixedMenuLayout = () => (
                 steps: 2,
                 state: 'signed',
                 type: 'attached',
-                parties: ['microsoft', 'alphabet'],
+                parties: ['lenovo', 'alphabet'],
                 files: ['thesis.pdf'],
                 signature:
                   'eaf583996255d2bc6063e068c07374dc051cd0fd7c7157496282a1ca2675609c',
@@ -120,14 +117,14 @@ const FixedMenuLayout = () => (
               resolve={1}
               match={match}
               state={{
-                opener: 'Microsoft',
+                opener: 'Lenovo',
                 reason:
                   'The part 1.1 of the contract was not properly executed by the second party of the contract.',
                 step: 0,
                 steps: 2,
                 state: 'signed',
                 type: 'attached',
-                parties: ['microsoft', 'alphabet'],
+                parties: ['lenovo', 'alphabet'],
                 files: ['thesis.pdf'],
                 signature:
                   'eaf583996255d2bc6063e068c07374dc051cd0fd7c7157496282a1ca2675609c',

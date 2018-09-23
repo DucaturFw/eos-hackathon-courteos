@@ -16,6 +16,11 @@ import {
   Dimmer,
 } from 'semantic-ui-react';
 import Dropzone from 'react-dropzone';
+import { connect } from 'react-redux';
+import { createSelector } from 'reselect';
+import { IntlProvider } from 'react-intl';
+import { initialState } from './reducer';
+import { push } from 'react-router-redux';
 
 const getAgreement = (_parties = [], type, name = 'CourtEOS') => {
   if (!_parties || _parties.length < 2) return '...Agreement placeholder...';
@@ -85,6 +90,7 @@ class ResolveModal extends Component {
               No
             </Button>
             <Button
+              onClick={this.props.cb}
               positive
               icon="checkmark"
               labelPosition="right"
@@ -149,6 +155,7 @@ class OpenDisputeModal extends Component {
               No
             </Button>
             <Button
+              onClick={this.props.cb}
               positive
               icon="checkmark"
               labelPosition="right"
@@ -205,14 +212,31 @@ class OpenCase extends Component {
     super(props);
     console.log(props);
     if (props.state) {
+      console.log('p-s');
       this.state = props.state;
-    } else
+    } else if (props.match.params.id) {
+      console.log('m-s');
+      this.state = props.cases[props.match.params.id];
+    } else {
+      console.log('s-s');
       this.state = {
+        state: 'new',
+        loading: false,
         step: 0,
         steps: 2,
         type: 'attached',
         parties: [],
+        party1: '',
+        party2: '',
+        files: [],
+        signature: '',
+        signature2: '',
+        expertise: 1,
+        judges: [],
       };
+    }
+
+    console.log('state', this.state);
 
     this.handleInputChange = this.handleInputChange.bind(this);
     this.next = this.next.bind(this);
@@ -223,16 +247,20 @@ class OpenCase extends Component {
   }
 
   getFinalButton() {
-    if (this.props.resolve)
+    if (this.state.state === 'resolve')
       return (
         <Button.Group style={{ float: 'right' }}>
-          <ResolveModal />
+          <ResolveModal cb={() => this.next('resolved')} />
         </Button.Group>
       );
-    if (!this.state.disputeEnd && this.state.state === 'signed') {
+    if (
+      this.props.show &&
+      this.state.state === 'signed' &&
+      !this.state.disputeEnd
+    ) {
       return (
         <Button.Group style={{ float: 'right' }}>
-          <OpenDisputeModal />
+          <OpenDisputeModal cb={() => this.next('disputed')} />
         </Button.Group>
       );
     }
@@ -244,14 +272,15 @@ class OpenCase extends Component {
         <Button
           onClick={this.next}
           positive={this.state.step === this.state.steps}
-          disabled={this.state.disputeEnd}
+          disabled={
+            this.state.step === this.state.steps && this.state.disputeEnd
+          }
         >
           {(this.state.step !== this.state.steps && 'Next') ||
-            (this.props.show &&
-              ((this.state.disputeEnd && 'Awaiting') ||
-                (this.state.result && 'Finished') ||
-                '')) ||
-            (this.props.accept && 'Accept') ||
+            ((this.state.disputeEnd && 'Awaiting') ||
+              (this.state.result && 'Finished') ||
+              '') ||
+            (this.state.state === 'pending' && 'Accept') ||
             'Submit'}
         </Button>
       </Button.Group>
@@ -280,11 +309,84 @@ class OpenCase extends Component {
     this.setState({ type });
   }
 
-  next() {
-    if (this.state.step < this.state.steps)
+  next(param) {
+    if (param === 'disputed' || param === 'resolved') {
+      if (this.state.state === 'signed') {
+        this.setState({ state: param });
+        this.props.dispatch({
+          type: 'UPDATE_CASE',
+          payload: {
+            step: 0,
+            ...this.state,
+            state: param,
+            disputeEnd: param === 'disputed' ? '2018-10-10' : null,
+          },
+        });
+        this.props.dispatch(push(`/show/${this.state.id}`));
+      }
+      if (this.state.state === 'pending') {
+        this.setState({ state: 'signed' });
+        this.props.dispatch({
+          type: 'UPDATE_CASE',
+          payload: { step: 0, ...this.state, state: 'signed' },
+        });
+        this.props.dispatch(push(`/show/${this.state.id}`));
+      }
+      if (this.state.state === 'new') {
+        const id = Math.floor(Math.random() * 1000);
+        this.setState({ state: 'pending' });
+        this.props.dispatch({
+          type: 'OPEN_CASE',
+          payload: {
+            id,
+            ...this.state,
+            step: 0,
+            state: 'pending',
+          },
+        });
+        this.props.dispatch(push(`/show/${id}`));
+      }
+      return;
+    }
+    if (this.state.step < this.state.steps) {
       this.setState({ step: this.state.step + 1 });
-    // else {
-    // }
+    } else {
+      if (this.state.state === 'signed') {
+        this.setState({ state: param });
+        this.props.dispatch({
+          type: 'UPDATE_CASE',
+          payload: {
+            step: 0,
+            ...this.state,
+            state: param,
+            disputeEnd: param === 'disputed' ? '2018-10-10' : null,
+          },
+        });
+        this.props.dispatch(push(`/show/${this.state.id}`));
+      }
+      if (this.state.state === 'pending') {
+        this.setState({ state: 'signed' });
+        this.props.dispatch({
+          type: 'UPDATE_CASE',
+          payload: { step: 0, ...this.state, state: 'signed' },
+        });
+        this.props.dispatch(push(`/show/${this.state.id}`));
+      }
+      if (this.state.state === 'new') {
+        const id = Math.floor(Math.random() * 1000);
+        this.setState({ state: 'pending' });
+        this.props.dispatch({
+          type: 'OPEN_CASE',
+          payload: {
+            id,
+            ...this.state,
+            step: 0,
+            state: 'pending',
+          },
+        });
+        this.props.dispatch(push(`/show/${id}`));
+      }
+    }
   }
 
   back() {
@@ -307,15 +409,6 @@ class OpenCase extends Component {
   }
 
   render() {
-    if (this.state.loading)
-      return (
-        <Segment style={{ minHeight: '15em' }}>
-          <Dimmer active inverted>
-            <Loader />
-          </Dimmer>
-        </Segment>
-      );
-    // noinspection JSAnnotator
     return (
       <div>
         <h1>
@@ -325,15 +418,6 @@ class OpenCase extends Component {
             'Open'}{' '}
           Case
         </h1>
-        {this.state.reason && (
-          <Message>
-            <Message.Header>
-              Dispute is opened by &nbsp;
-              <b>{this.state.opener}</b>
-            </Message.Header>
-            <p>{this.state.reason}</p>
-          </Message>
-        )}
         <Segment>
           {getSteps(
             ['Agreement', 'Contract', 'Judges'].map(e => ({ title: e })),
@@ -400,8 +484,12 @@ class OpenCase extends Component {
                     disabled={this.props.show}
                     control={TextArea}
                     label="Signature"
-                    name="signature"
-                    value={this.state.signature || ''}
+                    name={this.state === 'pending' ? 'signature2' : 'signature'}
+                    value={
+                      this.state === 'pending'
+                        ? this.state.signature2
+                        : this.state.signature || ''
+                    }
                     onChange={this.handleInputChange}
                     placeholder="Text above signed with your country's applicable e-signature"
                   />
@@ -558,4 +646,19 @@ class OpenCase extends Component {
   }
 }
 
-export default OpenCase;
+function mapStateToProps(state) {
+  console.log(111, state);
+  return {
+    cases: state.get('cases', initialState).cases,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    dispatch,
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(OpenCase);

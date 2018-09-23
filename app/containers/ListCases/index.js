@@ -2,6 +2,8 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import { Link } from 'react-router-dom';
+import {initialState} from "../OpenCase/reducer";
+import {connect} from "react-redux";
 
 class ListCases extends Component {
   constructor(props) {
@@ -9,32 +11,7 @@ class ListCases extends Component {
     console.log(props);
 
     this.state = {
-      data: [
-        {
-          id: 1,
-          initiator: 'Microsoft',
-          partner: 'Alphabet',
-          state: 'Disputed',
-        },
-        {
-          id: 2,
-          initiator: 'Yandex',
-          partner: 'Alphabet',
-          state: 'Pending',
-        },
-        {
-          id: 3,
-          initiator: 'Lenovo',
-          partner: 'NVidia',
-          state: 'Signed',
-        },
-        {
-          id: 4,
-          initiator: 'Lenovo',
-          partner: 'HP',
-          state: 'Finished',
-        },
-      ],
+      data: Object.values(this.props.cases),
     };
   }
 
@@ -46,11 +23,11 @@ class ListCases extends Component {
       },
       {
         Header: 'Party 1',
-        accessor: 'initiator', // String-based value accessors!
+        accessor: 'party1', // String-based value accessors!
       },
       {
         Header: 'Party 2',
-        accessor: 'partner',
+        accessor: 'party2',
       },
       {
         Header: 'State',
@@ -90,4 +67,21 @@ class ListCases extends Component {
   }
 }
 
-export default ListCases;
+
+function mapStateToProps(state) {
+  console.log(222, state);
+  return {
+    cases: state.get('cases', initialState).cases,
+  };
+}
+function mapDispatchToProps(dispatch) {
+  return {
+    dispatch,
+  };
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ListCases);
+
